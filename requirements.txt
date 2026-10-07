@@ -1,0 +1,5 @@
+# Dependências de execução do ITSA-Agente.
+# Instaladas automaticamente (em .venv local da pasta) pelos scripts iniciar.bat / iniciar.sh.
+streamlit>=1.40,<2
+httpx>=0.27,<1
+pydantic>=2.7,<3

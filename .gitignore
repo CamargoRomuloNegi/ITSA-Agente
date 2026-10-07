@@ -1,0 +1,33 @@
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Segredos e configuração local — NUNCA versionar
+.env
+.env.*
+!.env.example
+secrets.toml
+.streamlit/secrets.toml
+
+# Relatórios de diagnóstico gerados localmente (podem conter dados do ambiente)
+relatorios/
+*.diag.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
