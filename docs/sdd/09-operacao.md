@@ -79,6 +79,32 @@ O Streamlit **não possui autenticação própria**. Para uso além da máquina 
 4. Uma única instância atende várias sessões; cada sessão tem credenciais e histórico próprios.
 5. Dimensione pela concorrência de **streams simultâneos** (cada um ocupa uma *thread*).
 
+### 5.1 Streamlit Community Cloud (somente desenvolvimento/demonstração)
+
+Adequado para as Fases 1–2 com **credenciais de teste** (ver [02 §7](02-arquitetura.md) e
+[05](05-seguranca-e-guardrails.md): em produção, dados e conversas de clientes não devem passar por
+servidor de terceiros).
+
+1. **Repositório:** a raiz deve conter `app.py`, `requirements.txt`, a pasta **`itsa_agente/`** (com
+   `__init__.py`), `.streamlit/` e `docs/`. Confira no GitHub, antes do deploy, que `itsa_agente/`
+   existe com todos os subpacotes (`gateway/`, `diagnostics/`, `ui/`).
+2. **Deploy:** *Create app* → repositório → *branch* `main` → *Main file path* `app.py`. Em
+   *Advanced settings*, Python 3.10 ou superior.
+3. **Secrets (opcional):** só configuração, nunca o Token ID:
+   ```toml
+   ITSA_BASE_URL = "https://suporteitsa2.ddns.net"
+   ITSA_STREAM_READ_TIMEOUT = "120"
+   ```
+4. **Acesso:** use repositório privado e restrinja os visualizadores do app; o app não tem login próprio.
+5. **Validação:** conecte com credenciais de teste e rode o **Diagnóstico**; D01 acusa se o gateway
+   não é alcançável a partir da nuvem (firewall/IP, certificado TLS inválido).
+
+| Erro no deploy | Causa provável | Ação |
+|---|---|---|
+| `ModuleNotFoundError: itsa_agente` | A pasta `itsa_agente/` não foi enviada ao GitHub (upload web de arquivos soltos descarta subpastas) | Enviar a pasta inteira (arrastar a **pasta**, ou usar `git add -A`) e reiniciar o app |
+| `ModuleNotFoundError: streamlit/httpx/pydantic` | `requirements.txt` fora da raiz | Mover para a raiz |
+| Tela de conexão abre, mas "Não foi possível conectar" | Gateway inacessível da nuvem | Liberar o acesso ou usar execução local/servidor interno |
+
 ## 6. Observabilidade
 
 | Fonte | Conteúdo | Cuidado |

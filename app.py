@@ -12,10 +12,25 @@ ou, com as dependências já instaladas::
 
 from __future__ import annotations
 
-import streamlit as st
+import sys
+from pathlib import Path
 
-from itsa_agente import __version__
-from itsa_agente.ui import estado, pagina_chat, pagina_conexao, pagina_diagnostico, pagina_modelos
+# Garante que o pacote `itsa_agente` (pasta ao lado deste arquivo) seja importável em qualquer
+# ambiente de execução (Streamlit Cloud, serviço, IDE), independentemente do diretório atual.
+_RAIZ = str(Path(__file__).resolve().parent)
+if _RAIZ not in sys.path:
+    sys.path.insert(0, _RAIZ)
+
+import streamlit as st  # noqa: E402
+
+from itsa_agente import __version__  # noqa: E402
+from itsa_agente.ui import (  # noqa: E402
+    estado,
+    pagina_chat,
+    pagina_conexao,
+    pagina_diagnostico,
+    pagina_modelos,
+)
 
 st.set_page_config(page_title="ITSA Agente", page_icon="💬", layout="wide")
 

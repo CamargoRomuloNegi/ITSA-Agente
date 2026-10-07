@@ -3,6 +3,15 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento
 [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.1.1] — 2026-10-07
+
+### Corrigido
+- `app.py` insere a própria pasta no `sys.path`, evitando `ModuleNotFoundError: itsa_agente` em
+  ambientes onde o diretório do script não é importável (ex.: Streamlit Cloud).
+
+### Documentação
+- `docs/sdd/09-operacao.md` §5.1: passo a passo e solução de problemas para o Streamlit Community Cloud.
+
 ## [0.1.0] — 2026-10-07 — Fase 1: Fundação
 
 ### Adicionado
