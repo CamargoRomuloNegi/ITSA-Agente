@@ -60,14 +60,16 @@ def relatorio_markdown(relatorio: Relatorio, redator: Redator | None = None) -> 
     linhas += ["", "## Catálogo de respostas de erro observadas", ""]
     if d["observacoes"]:
         linhas += [
-            "| Endpoint | Cenário | HTTP | `error.code` | Mensagem | Tempo (ms) |",
-            "|---|---|---|---|---|---|",
+            "| Endpoint | Cenário | HTTP | `error.code` | Mensagem | Corpo bruto (resumo) "
+            "| Tempo (ms) |",
+            "|---|---|---|---|---|---|---|",
         ]
         for o in d["observacoes"]:
             http = o["status_http"] if o["status_http"] is not None else f"rede: {o['erro_rede']}"
             linhas.append(
                 f"| {_celula(o['endpoint'])} | {_celula(o['cenario'])} | {_celula(http)} | "
-                f"{_celula(o['codigo'])} | {_celula(o['mensagem'])} | {o['tempo_ms']} |"
+                f"{_celula(o['codigo'])} | {_celula(o['mensagem'])} | {_celula(o.get('corpo'))} | "
+                f"{o['tempo_ms']} |"
             )
     else:
         linhas.append("_Nenhuma resposta de erro observada._")

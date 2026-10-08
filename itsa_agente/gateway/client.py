@@ -156,6 +156,17 @@ class RespostaSondagem:
         return extrair_erro_api(self.status or 0, self.corpo)[0] if self.status else None
 
     @property
+    def corpo_resumo(self) -> str | None:
+        """Início do corpo de uma resposta de erro, em uma linha (vazio se não houver corpo).
+
+        Serve ao catálogo do diagnóstico: mostra o formato **real** do erro quando ele foge do
+        contrato ``{error:{code,message}}`` (ex.: 401 do *middleware* de JWT).
+        """
+        if not self.status or self.status < 400:
+            return None
+        return " ".join(self.corpo.split())[:300]
+
+    @property
     def mensagem_erro(self) -> str | None:
         if not self.status or self.status < 400:
             return None

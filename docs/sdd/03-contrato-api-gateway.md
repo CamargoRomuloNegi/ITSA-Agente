@@ -137,11 +137,11 @@ não cobre — por isso o diagnóstico mede o servidor em vez de supor.
 |---|---|---|---|---|
 | L-01 | Catálogo de `error.code` (por endpoint/status) | Tratamento fino no ERP | D01, D04, D05, D11–D18 (catálogo no relatório) | Tratar por classe de status; exibir `código` no detalhe |
 | L-02 | Formato do evento `error` no stream | Mensagem ao usuário, auditoria | Só reproduzível com falha real do modelo; D19 pode provocá-lo | Aceitar campos no topo **ou** `{"error":{...}}` (`ndjson.py`) |
-| L-03 | Limite de tamanho de `content` e janela de contexto por modelo | Quanto contexto das views cabe | D19 (2k→96k caracteres; mede `promptTokens`) | `ITSA_MAX_HISTORY_CHARS=24000` (heurística) |
+| L-03 | Limite de tamanho de `content` e janela de contexto por modelo | Quanto contexto das views cabe | D19 (2k→192k caracteres; mede `promptTokens`) | `ITSA_MAX_HISTORY_CHARS=24000` (heurística); medido: aceita ≥ 96k ([§6](#6-resultados-medidos-no-gateway-real)) |
 | L-04 | Limites de taxa e `Retry-After` do `429` | Experiência sob carga | Teste de carga dedicado (não coberto por D01–D19) | Não repetir 429; exibir tempo de espera |
 | L-05 | Valores de timeout do servidor | Tempo limite do cliente | D07 (TTFB, total) | `ITSA_STREAM_READ_TIMEOUT=120` s |
-| L-06 | Se `role=system` é aceito e **obedecido** | Desenho dos prompts | D10 | Não depender de `system` (ADR-0003) |
-| L-07 | Se o gateway aceita campos extras (`temperature`...) | Controle de geração | D17 | Assumir que não há ajuste |
+| L-06 | Se `role=system` é aceito e **obedecido** | Desenho dos prompts | D10 | **Medido: aceito e obedecido** (§6); desenho segue sem depender só dele (ADR-0003) |
+| L-07 | Se o gateway aceita campos extras (`temperature`...) | Controle de geração | D17 | **Medido: aceito**; efeito não comprovado — assumir que não há ajuste |
 | L-08 | Se fechar a conexão cancela a geração no servidor | Custo de inferência | Medição manual (tempo de CPU/GPU) | Fechar a conexão; documentar |
 | L-09 | Como o gateway informa **módulos licenciados** do cliente | Habilitar telas por agente | Inspeção do JWT/resposta (fora do escopo desta fase) | O ERP informará os módulos ativos |
 | L-10 | Política de bloqueio por tentativas inválidas de credencial | Segurança vs. testes | D18 (opcional, com cuidado) | D18 desligado por padrão |
@@ -150,19 +150,79 @@ não cobre — por isso o diagnóstico mede o servidor em vez de supor.
 
 ## 6. Resultados medidos no gateway real
 
-> **Pendente.** O ambiente de construção desta entrega **não alcança** o servidor (o acesso é
-> bloqueado pelo proxy de saída), portanto nenhum dado abaixo foi medido. Execute o diagnóstico na
-> rede da ITSA (`Diagnóstico` na aplicação, ou `diagnostico.bat`) e cole aqui as tabelas do relatório.
+Medição de **08/10/2026**, diagnóstico D01–D19 (com D18 e D19) executado a partir do ITSA-Agente
+0.1.1 contra `https://suporteitsa2.ddns.net`, com credencial de teste (usuário ERP `RicardoTeste`).
+Resultado: **aprovado** — 12 OK, 5 alertas, 0 falhas, 2 informativos; duração total 16 s.
 
-| Item | Valor medido | Data | Responsável |
+### 6.1 Valores medidos
+
+| Item | Valor medido | Verificação |
+|---|---|---|
+| Validade do JWT | **900 s** (15 min), igual ao documentado; desvio de relógio −1 s | D02 |
+| Modelos expostos | `iaitsa-geral` ("IAitsa Geral") e `iaitsa-suporte` ("IAitsa Suporte") | D03 |
+| Sequência do *stream* | `started → delta → completed`, um único `requestId`; `completed` traz `promptTokens`/`completionTokens` | D07 |
+| 1º trecho / total (resposta de 2 tokens) | **0,44 s / 0,46 s** | D07 |
+| Vazão de leitura do *prompt* | ≈ **2.600–3.000 tokens/s** (429 tokens em 0,37 s; 18.623 em 6,6 s) | D19 |
+| Tokens por segundo de **geração** | **Não medido**: a resposta de teste tem 2 tokens (o valor de 4,4 tok/s do relatório não é representativo) | D07 |
+| Acentuação (UTF-8) | Íntegra de ponta a ponta | D08 |
+| Memória multi-turno | O modelo usou o histórico enviado (respondeu o código combinado) | D09 |
+| `role=system` | **Aceito e obedecido** (amostra única, tarefa trivial) | D10 |
+| Campos extras (`temperature`) | **Aceitos** (HTTP 200); **efeito não medido** — pode ser ignorado | D17 |
+| Cabeçalhos `X-*` inválidos (51 caracteres, GUID inválido) | **Aceitos** (HTTP 200): o servidor não valida; a validação local do cliente é mantida | D06 |
+| Maior conteúdo aceito | **96.000 caracteres** (18.623 tokens) sem erro; limite superior ainda não encontrado | D19 |
+| Caracteres por token | ≈ **5,0** (texto repetitivo de teste; para dados reais de ERP, com números e códigos, assumir **3,5**) | D19 |
+| Tempo por tamanho de entrada | 2 mil: 0,37 s · 8 mil: 0,60 s · 32 mil: 2,05 s · 96 mil: 6,60 s (≈ linear) | D19 |
+| Credencial inválida | Token ID de formato inválido → **400** `INVALID_REQUEST` (não 401); credencial bem formada porém errada → 401 (observado na conexão) | D18 |
+| Bloqueio por tentativas | Não observado com 1 tentativa inválida (política completa segue desconhecida) | D18 |
+
+### 6.2 Catálogo de erros observados
+
+| Cenário | HTTP | `error.code` | Mensagem do servidor |
 |---|---|---|---|
-| Validade real do JWT | _a medir (D02)_ | | |
-| Modelos expostos | _a medir (D03)_ | | |
-| 1º trecho / total / tokens por segundo | _a medir (D07)_ | | |
-| `role=system` aceito e obedecido | _a medir (D10)_ | | |
-| Campos extras aceitos | _a medir (D17)_ | | |
-| Maior conteúdo aceito (caracteres) e caracteres/token | _a medir (D19)_ | | |
-| Catálogo de `error.code` | _a medir (relatório §"Catálogo")_ | | |
+| Modelo inexistente | 400 | `MODEL_NOT_AVAILABLE` | O modelo informado não está disponível. |
+| `stream=false` | 400 | `STREAM_REQUIRED` | Esta operação exige streaming. |
+| 31 mensagens | 400 | `INVALID_MESSAGES_COUNT` | Informe entre 1 e 30 mensagens. |
+| Última mensagem `assistant` | 400 | `LAST_MESSAGE_MUST_BE_USER` | A última mensagem deve ser do usuário. |
+| `content` vazio | 400 | `INVALID_MESSAGE` | Todas as mensagens devem possuir função válida e conteúdo. |
+| Dados de autenticação inválidos | 400 | `INVALID_REQUEST` | Os dados informados são inválidos. |
+| Sem token / token adulterado / expirado | 401 | *(ausente)* | *(corpo fora do formato; ver abaixo)* |
+| JSON malformado / `conversationId` inválido | 400 | *(ausente)* | *(corpo fora do formato; ver abaixo)* |
+
+**Conclusões:**
+
+1. Os erros de **regra de negócio** do `/api/chat` e do `/api/auth/token` seguem
+   `{"error":{"code","message"}}` com códigos estáveis em maiúsculas — adequados para tratamento
+   programático (o cliente já os expõe em `GatewayError.codigo`).
+2. Os erros emitidos **pelo framework antes da aplicação** (401 de JWT ausente/inválido; 400 de
+   JSON ou GUID malformado) **não** seguem esse formato. O cliente trata esses casos pela classe do
+   status HTTP e usa mensagens padrão em pt-BR (`extrair_erro_api`). Os alertas D01/D04/D05/D16 do
+   relatório de 0.1.1 refletem isso e são **comportamento esperado**: a partir da versão 0.1.2
+   passam a INFO.
+3. O corpo bruto desses erros **não foi capturado** no relatório de 0.1.1 (a coluna de mensagem do
+   catálogo mostrou o texto padrão do próprio cliente, não o do servidor). A versão 0.1.2 inclui a
+   coluna *Corpo bruto (resumo)*; reexecute o diagnóstico para registrá-lo aqui.
+4. Distinção importante para a interface: **400 `INVALID_REQUEST`** na autenticação indica dado mal
+   formado; **401** indica credencial bem formada, porém não reconhecida.
+
+### 6.3 Decisões e consequências
+
+| Achado | Decisão |
+|---|---|
+| Entrada de 96 mil caracteres aceita e processada a ≈ 2.800 tokens/s | Contexto **não** é o gargalo imediato. Manter `ITSA_MAX_HISTORY_CHARS=24000` (≈ 7 mil tokens com 3,5 car./token; ≈ 2,5 s de leitura) — o limite prático será a **qualidade** do modelo pequeno e a latência, não o servidor. Reavaliar com os dados reais das *views* (Fase 3). |
+| `role=system` obedecido | ADR-0003 atualizada: pode-se usar `system` como camada principal de instruções; a estrutura "sanduíche" e as barreiras por código **continuam**, porque o teste foi trivial e a obediência sob ataque é medida na Fase 2. |
+| `temperature` aceito sem efeito comprovado | Tratar como **sem controle de geração** até medir (mesmo *prompt*, `0` vs `1.5`, repetido). Item aberto L-07. |
+| Validade 900 s e relógio sincronizado | Política de renovação do ADR-0006 confirmada. |
+| 5,0 caracteres/token em texto de teste | Não usar como orçamento real; adotar 3,5 para dimensionar contexto de dados. |
+| Modelo `iaitsa-suporte` | Finalidade a confirmar com a ITSA (suporte técnico?) antes de associá-lo a algum agente. Os agentes de ERP partem de `iaitsa-geral`. |
+
+### 6.4 Pendências de medição
+
+- Teto de entrada (D19 agora também testa **192.000** caracteres) e comportamento sob 2–3 conversas
+  simultâneas (L-11).
+- Vazão de **geração** com resposta longa (≥ 200 tokens) — acrescentar uma verificação ao
+  diagnóstico na Fase 2.
+- Efeito real de `temperature` e corpo bruto dos erros do framework (reexecutar o diagnóstico).
+- Política de limite de taxa (`429`) e de bloqueio por tentativas inválidas (L-04, L-10).
 
 ## 7. Política de evolução do contrato
 

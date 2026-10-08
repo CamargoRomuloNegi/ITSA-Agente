@@ -22,10 +22,11 @@ conclui depois dos agentes.
 
 ### Fase 1 — Fundação ✅ *(esta entrega)*
 **Entregáveis:** cliente da API; conversa/janela; segurança de segredos; diagnóstico D01–D19; telas;
-186 testes; SDD e ADRs; scripts sem instalação.
+188 testes; SDD e ADRs; scripts sem instalação.
 **Saída:** critérios de [07 §4](07-plano-de-testes.md) atendidos.
-**Pendência para fechar de fato:** rodar o diagnóstico no gateway real e preencher
-[03 §6](03-contrato-api-gateway.md).
+**Validação com o gateway real:** diagnóstico executado em 08/10/2026 (aprovado, sem falhas); medições
+em [03 §6](03-contrato-api-gateway.md). Restam as pendências de medição de §6.4 (teto de contexto,
+vazão de geração, efeito de `temperature`, corpo bruto dos erros do framework).
 
 ### Fase 2 — Guardrails
 **Objetivo:** pacote `guardrails/` reutilizável (entrada, escopo, montagem de prompt com

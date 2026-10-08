@@ -34,10 +34,10 @@ cenários que o servidor real raramente produz sob demanda.
 | `test_cliente.py` | 55 | Token (emissão, cache, renovação, 401, 429), modelos (cache, vazio), resiliência (503, conexão, timeout, `Retry-After`), mapeamento de status, chat (sequência, erros, corte, linha inválida, UTF-8 dividido entre pacotes), validação local, cabeçalhos, `sondar`, logs |
 | `test_conversa.py` | 22 | Confirmação transacional, cancelamento, janela (30 msgs/caracteres), `conversationId` estável, conversa longa de 40 turnos |
 | `test_seguranca.py` | 8 | Redação de segredos, JWT, Bearer, CPF/CNPJ, estruturas aninhadas, filtro de log |
-| `test_diagnostico.py` | 19 | Gateway saudável, catálogo de erros, alertas por divergência de contrato, gateway fora do ar, opções D18/D19, relatórios sem segredos |
+| `test_diagnostico.py` | 21 | Gateway saudável, catálogo de erros, alertas por divergência de contrato, gateway fora do ar, opções D18/D19, relatórios sem segredos |
 | `test_cli.py` | 6 | Execução, relatórios gravados, códigos de saída 0/1/2, ausência de parâmetro de Token ID |
 | `test_ui.py` | 14 | Conexão (sucesso, token errado, CNPJ inválido), desconectar, telas protegidas, chat (stream, erro, nova conversa, instrução de sistema), limpeza de widgets, mensagens de erro |
-| **Total** | **186** | |
+| **Total** | **188** | |
 
 ## 3. Matriz requisito → teste
 
@@ -75,7 +75,7 @@ Ubuntu e Windows, Python 3.10 e 3.12; inclui `ruff format --check`).
 A execução local roda, nesta ordem: `ruff check .` → `mypy` → `pytest`. **Os três precisam passar** antes
 de qualquer *commit*.
 
-Critérios de aceite da Fase 1 (todos atendidos no momento da entrega): 186 testes verdes;
+Critérios de aceite da Fase 1 (todos atendidos no momento da entrega): 188 testes verdes;
 `ruff` e `mypy --strict` sem alertas; fluxo de UI completo em `AppTest`; relatórios sem segredos.
 
 ## 5. Roteiro de aceitação com o gateway real (manual)

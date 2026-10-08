@@ -109,7 +109,9 @@ def test_servidor_com_erro_500_e_falha(credenciais: Credenciais, cfg: Settings) 
     c.fechar()
 
 
-def test_corpo_de_erro_fora_do_formato_gera_alerta(credenciais: Credenciais, cfg: Settings) -> None:
+def test_rejeicao_do_framework_fora_do_formato_e_informativa(
+    credenciais: Credenciais, cfg: Settings
+) -> None:
     gw = GatewayFalso()
 
     def h(req: httpx.Request) -> httpx.Response:
@@ -118,7 +120,31 @@ def test_corpo_de_erro_fora_do_formato_gera_alerta(credenciais: Credenciais, cfg
         return gw(req)
 
     c = ClienteGateway(credenciais, cfg, transporte=httpx.MockTransport(h), dormir=lambda s: None)
-    r = por_id(executar(c), "D01")
+    rel = executar(c)
+    r = por_id(rel, "D01")
+    assert r.status is Status.INFO and "fora do formato" in r.detalhe
+    # O catálogo guarda o corpo bruto, para mostrar o formato real do erro.
+    obs = next(
+        o for o in rel.observacoes if o.cenario == "sem token" and o.endpoint.startswith("GET")
+    )
+    assert obs.corpo == "Unauthorized"
+    c.fechar()
+
+
+def test_formato_fora_do_contrato_em_erro_de_aplicacao_continua_alerta(
+    credenciais: Credenciais, cfg: Settings
+) -> None:
+    """Só as rejeições do framework são toleradas; erros de validação da aplicação, não."""
+    gw = GatewayFalso()
+
+    def h(req: httpx.Request) -> httpx.Response:
+        corpo = json.loads(req.content) if req.content and req.url.path == "/api/chat" else {}
+        if corpo.get("stream") is False:
+            return httpx.Response(400, text="stream obrigatório")
+        return gw(req)
+
+    c = ClienteGateway(credenciais, cfg, transporte=httpx.MockTransport(h), dormir=lambda s: None)
+    r = por_id(executar(c), "D12")
     assert r.status is Status.ALERTA and "fora do formato" in r.detalhe
     c.fechar()
 
@@ -151,6 +177,31 @@ def test_sem_modelos_pula_os_testes_de_chat(cliente: ClienteGateway, gw: Gateway
 
 def test_modelo_escolhido_inexistente_e_falha(cliente: ClienteGateway) -> None:
     assert por_id(executar(cliente, modelo="outro"), "D03").status is Status.FALHA
+
+
+def test_credencial_invalida_aceita_400_de_validacao_de_entrada(
+    credenciais: Credenciais, cfg: Settings
+) -> None:
+    """Gateway real: Token ID de formato inválido -> 400 INVALID_REQUEST (medido)."""
+    gw = GatewayFalso()
+
+    def h(req: httpx.Request) -> httpx.Response:
+        if req.url.path == "/api/auth/token" and b"TOKEN-INVALIDO" in req.content:
+            return httpx.Response(
+                400,
+                json={
+                    "error": {
+                        "code": "INVALID_REQUEST",
+                        "message": "Os dados informados são inválidos.",
+                    }
+                },
+            )
+        return gw(req)
+
+    c = ClienteGateway(credenciais, cfg, transporte=httpx.MockTransport(h), dormir=lambda s: None)
+    r = por_id(executar(c, incluir_credencial_invalida=True), "D18")
+    assert r.status is Status.OK and r.dados["codigo"] == "INVALID_REQUEST"
+    c.fechar()
 
 
 def test_credencial_invalida_opcional(cliente: ClienteGateway, gw: GatewayFalso) -> None:

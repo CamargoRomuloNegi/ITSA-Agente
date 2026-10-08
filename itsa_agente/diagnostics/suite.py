@@ -50,7 +50,7 @@ class OpcoesDiagnostico:
     modelo: str | None = None
     incluir_credencial_invalida: bool = False
     incluir_carga: bool = False
-    tamanhos_carga: tuple[int, ...] = (2_000, 8_000, 32_000, 96_000)
+    tamanhos_carga: tuple[int, ...] = (2_000, 8_000, 32_000, 96_000, 192_000)
     prompt_curto: str = "Responda apenas com a palavra OK."
 
 
@@ -162,6 +162,7 @@ class Diagnostico:
                 mensagem=r.mensagem_erro,
                 tempo_ms=round(r.tempo_ms, 1),
                 erro_rede=r.erro_rede,
+                corpo=r.corpo_resumo,
             )
         )
 
@@ -200,8 +201,19 @@ class Diagnostico:
         )
 
     def _esperar_rejeicao(
-        self, r: RespostaSondagem, esperados: set[int], rotulo: str
+        self,
+        r: RespostaSondagem,
+        esperados: set[int],
+        rotulo: str,
+        *,
+        formato_opcional: bool = False,
     ) -> tuple[Status, str, dict[str, Any]]:
+        """Avalia uma rejeição esperada.
+
+        ``formato_opcional``: rejeições feitas pelo *framework* antes da aplicação (JWT ausente,
+        JSON malformado) costumam não seguir ``{error:{code,message}}``. Medido no gateway real:
+        é o caso. Aqui isso é INFO (o cliente usa mensagens padrão), não ALERTA.
+        """
         dados = {
             "status_http": r.status,
             "codigo": r.codigo_erro,
@@ -216,7 +228,10 @@ class Diagnostico:
                 if self._formato_erro_ok(r)
                 else " (corpo de erro fora do formato {error:{code,message}})"
             )
-            st = Status.OK if not extra else Status.ALERTA
+            if extra and formato_opcional:
+                st = Status.INFO
+            else:
+                st = Status.OK if not extra else Status.ALERTA
             return st, f"{rotulo}: HTTP {r.status}, código={r.codigo_erro!r}{extra}.", dados
         if r.status is not None and r.status >= 500:
             return Status.FALHA, f"{rotulo}: erro de servidor HTTP {r.status}.", dados
@@ -232,7 +247,7 @@ class Diagnostico:
     def _d01_alcance(self) -> tuple[Status, str, dict[str, Any]]:
         r = self._c.sondar("GET", "/api/models", token=None)
         self._registrar("GET /api/models", "sem token", r)
-        return self._esperar_rejeicao(r, {401}, "GET /api/models sem token")
+        return self._esperar_rejeicao(r, {401}, "GET /api/models sem token", formato_opcional=True)
 
     def _d02_token(self) -> tuple[Status, str, dict[str, Any]]:
         info = self._c.autenticar()
@@ -288,14 +303,14 @@ class Diagnostico:
             token="eyJhbGciOiJIUzI1NiJ9.e30.assinatura-invalida",  # noqa: S106 - JWT falso de teste
         )
         self._registrar("GET /api/models", "token adulterado", r)
-        return self._esperar_rejeicao(r, {401}, "Token adulterado")
+        return self._esperar_rejeicao(r, {401}, "Token adulterado", formato_opcional=True)
 
     def _d05_chat_sem_token(self) -> tuple[Status, str, dict[str, Any]]:
         if not self._exigir_modelo():
             return Status.PULADO, "Sem modelo disponível.", {}
         r = self._c.sondar("POST", "/api/chat", json_corpo=self._corpo_chat(), token=None)
         self._registrar("POST /api/chat", "sem token", r)
-        return self._esperar_rejeicao(r, {401}, "Chat sem token")
+        return self._esperar_rejeicao(r, {401}, "Chat sem token", formato_opcional=True)
 
     def _d06_cabecalhos(self) -> tuple[Status, str, dict[str, Any]]:
         ok = self._c.sondar(
@@ -505,8 +520,10 @@ class Diagnostico:
         )
         self._registrar("POST /api/chat", "JSON malformado", bruto)
         guid = self._chat("conversationId inválido", conversationId="nao-e-guid")
-        s1, d1, _ = self._esperar_rejeicao(bruto, {400}, "JSON malformado")
-        s2, d2, _ = self._esperar_rejeicao(guid, {400}, "conversationId inválido")
+        s1, d1, _ = self._esperar_rejeicao(bruto, {400}, "JSON malformado", formato_opcional=True)
+        s2, d2, _ = self._esperar_rejeicao(
+            guid, {400}, "conversationId inválido", formato_opcional=True
+        )
         status = _pior(s1, s2)
         return status, f"{d1} {d2}", {"json_malformado": bruto.status, "guid_invalido": guid.status}
 
@@ -532,7 +549,9 @@ class Diagnostico:
         corpo = {**cred.payload(), "tokenId": "TOKEN-INVALIDO-DIAGNOSTICO"}
         r = self._c.sondar("POST", "/api/auth/token", json_corpo=corpo, token=None)
         self._registrar("POST /api/auth/token", "tokenId inválido", r)
-        return self._esperar_rejeicao(r, {401, 403}, "Token ID inválido")
+        # Medido: um Token ID de formato inválido recebe 400 INVALID_REQUEST (validação de entrada),
+        # enquanto um Token ID bem formado porém errado recebe 401. Os três são rejeições corretas.
+        return self._esperar_rejeicao(r, {400, 401, 403}, "Token ID inválido")
 
     def _d19_carga(self) -> tuple[Status, str, dict[str, Any]]:
         modelo = self._exigir_modelo()

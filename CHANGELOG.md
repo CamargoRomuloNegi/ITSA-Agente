@@ -3,6 +3,25 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento
 [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.1.2] — 2026-10-08
+
+Primeira versão ajustada com **medições do gateway real** (ver `docs/sdd/03` §6).
+
+### Alterado
+- Diagnóstico: rejeições do *framework* (401 de JWT; 400 de JSON/GUID malformado) fora do formato
+  `{error:{code,message}}` passam de ALERTA para INFO (D01, D04, D05, D16): é o comportamento real.
+- D18 aceita 400 (validação de entrada, `INVALID_REQUEST`), além de 401/403.
+- D19 testa também 192.000 caracteres.
+
+### Adicionado
+- Catálogo de erros do relatório ganha a coluna **Corpo bruto (resumo)** (já redigido), para mostrar o
+  formato real dos erros sem `error.code`.
+- 2 testes (188 no total).
+
+### Documentação
+- `docs/sdd/03` §6 preenchido com as medições (validade do JWT, modelos, latência, `system`,
+  `temperature`, tamanho de contexto, catálogo de erros) e decisões decorrentes; ADR-0003 atualizada.
+
 ## [0.1.1] — 2026-10-07
 
 ### Corrigido

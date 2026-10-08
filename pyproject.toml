@@ -1,6 +1,6 @@
 [project]
 name = "itsa-agente"
-version = "0.1.1"
+version = "0.1.2"
 description = "Chat estruturado com agentes especialistas para ERP, sobre a API IAitsaGateway."
 readme = "README.md"
 requires-python = ">=3.10"

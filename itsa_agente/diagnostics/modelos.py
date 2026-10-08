@@ -48,6 +48,7 @@ class Observacao:
     mensagem: str | None
     tempo_ms: float
     erro_rede: str | None = None
+    corpo: str | None = None  # resumo curto do corpo de erro (já sem segredos após a redação)
 
 
 @dataclass(slots=True)

@@ -1,6 +1,6 @@
 # ADR-0003 — Engenharia de prompt e de contexto no cliente; `system` não é garantia
 
-- **Status:** Aceita (a revisar após o diagnóstico D10) · **Data:** 07/10/2026
+- **Status:** Aceita; atualizada com a medição do D10 · **Data:** 07/10/2026 (atualizada em 08/10/2026)
 
 ## Contexto
 A API do gateway só expõe `messages`, `model` e `stream`: **não há** parâmetros de geração nem
@@ -14,6 +14,13 @@ A API do gateway só expõe `messages`, `model` e `stream`: **não há** parâme
    desenho dos agentes **não depende** de que o modelo o obedeça: regras críticas serão também
    repetidas no início/fim da mensagem de usuário (estrutura "sanduíche") e garantidas por código.
 3. O diagnóstico D10 mede aceitação e obediência; o resultado pode simplificar (ou obrigar) esse desenho.
+
+### Atualização (08/10/2026) — medição no gateway real
+O D10 mostrou que o `role=system` é **aceito e obedecido** (`iaitsa-geral`, tarefa trivial de uma
+palavra). Consequência: o prompt de sistema passa a ser a camada **principal** de instruções de cada
+agente. A decisão 2 permanece: a amostra é mínima e não prova obediência sob ataque, com contexto
+grande ou regras múltiplas; por isso a estrutura "sanduíche" e as barreiras por código (Fase 2)
+continuam obrigatórias. Em D17 o gateway aceitou `temperature`, mas sem efeito comprovado.
 
 ## Consequências
 - (+) Independência do comportamento específico de cada modelo; troca de modelo é testável.
