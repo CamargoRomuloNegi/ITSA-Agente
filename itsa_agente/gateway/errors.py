@@ -19,12 +19,16 @@ class GatewayError(Exception):
         codigo: str | None = None,
         status: int | None = None,
         request_id: str | None = None,
+        provedor: str | None = None,
     ) -> None:
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.codigo = codigo
         self.status = status
         self.request_id = request_id
+        #: Identificador do provedor externo de origem (``nvidia``, ``openrouter``); ``None`` para
+        #: o gateway ITSA. A interface usa para não confundir "chave de API" com "Token ID".
+        self.provedor = provedor
 
     def __str__(self) -> str:
         partes = [self.mensagem]
@@ -57,6 +61,10 @@ class BadRequest(GatewayError):
 
 class Unauthorized(GatewayError):
     """HTTP 401 — credencial ausente, inválida ou token expirado."""
+
+
+class CreditoInsuficiente(GatewayError):
+    """HTTP 402 — créditos ou cota esgotados no provedor externo (ex.: OpenRouter)."""
 
 
 class Forbidden(GatewayError):

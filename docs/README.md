@@ -5,6 +5,7 @@ Esta pasta reúne o **SDD** (*Software Design Document*) e os **ADRs** (registro
 ## Como ler
 
 - **Quer entender o projeto?** `sdd/00-visao-geral.md` → `sdd/02-arquitetura.md`.
+- **Vai usar NVIDIA/OpenRouter ou comparar modelos?** `sdd/11-provedores-externos.md`.
 - **Vai integrar com o gateway ou depurar chamadas?** `sdd/03-contrato-api-gateway.md` e `sdd/04-projeto-detalhado.md`.
 - **Vai desenhar um agente?** `sdd/05-seguranca-e-guardrails.md` e `sdd/06-agentes-e-modulos.md`.
 - **Vai operar/implantar?** `sdd/09-operacao.md`.
@@ -27,6 +28,7 @@ Esta pasta reúne o **SDD** (*Software Design Document*) e os **ADRs** (registro
 | 08 | [Roadmap](sdd/08-roadmap.md) |
 | 09 | [Operação](sdd/09-operacao.md) |
 | 10 | [Glossário](sdd/10-glossario.md) |
+| 11 | [Provedores externos (NVIDIA e OpenRouter)](sdd/11-provedores-externos.md) |
 
 ### ADRs (`docs/adr/`)
 
@@ -41,6 +43,7 @@ Esta pasta reúne o **SDD** (*Software Design Document*) e os **ADRs** (registro
 | [0007](adr/0007-segredos-somente-em-memoria.md) | Segredos só em memória e sempre mascarados |
 | [0008](adr/0008-diagnostico-como-produto.md) | Diagnóstico mede o gateway real em vez de supor |
 | [0009](adr/0009-um-modulo-por-agente.md) | Um módulo e uma tela por agente, sobre um núcleo único |
+| [0010](adr/0010-provedores-externos-e-roteamento.md) | Provedores externos (NVIDIA, OpenRouter) e roteamento por modelo qualificado |
 
 ## Convenções
 

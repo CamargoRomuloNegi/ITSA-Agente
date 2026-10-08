@@ -215,6 +215,13 @@ Resultado: **aprovado** — 12 OK, 5 alertas, 0 falhas, 2 informativos; duraçã
 | 5,0 caracteres/token em texto de teste | Não usar como orçamento real; adotar 3,5 para dimensionar contexto de dados. |
 | Modelo `iaitsa-suporte` | Finalidade a confirmar com a ITSA (suporte técnico?) antes de associá-lo a algum agente. Os agentes de ERP partem de `iaitsa-geral`. |
 
+### 6.3.1 Segunda rodada e comparação de modelos
+
+Uma segunda rodada do diagnóstico (0.1.2) foi executada pelo time da ITSA sem falhas. Os dois modelos
+do gateway apontam para Qwen e NVIDIA; a escolha por agente será decidida nos testes de qualidade, e
+os números por modelo (latência, vazão de geração) serão consolidados aqui. Para comparar com
+provedores externos, ver [11](11-provedores-externos.md).
+
 ### 6.4 Pendências de medição
 
 - Teto de entrada (D19 agora também testa **192.000** caracteres) e comportamento sob 2–3 conversas

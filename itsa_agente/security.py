@@ -16,6 +16,8 @@ from typing import Any
 
 # JWT: três segmentos base64url separados por ponto, iniciando por "eyJ" (cabeçalho JSON).
 _RE_JWT = re.compile(r"eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}")
+# Chaves de API de provedores externos (NVIDIA ``nvapi-...``; OpenRouter ``sk-or-v1-...``).
+_RE_CHAVE_API = re.compile(r"\b(?:nvapi|sk-or(?:-v\d+)?)-[A-Za-z0-9_-]{8,}")
 _RE_BEARER = re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._~+/=-]{8,}")
 _RE_CAMPO_SEGREDO = re.compile(
     r'(?i)("?(?:tokenId|accessToken|token_id|access_token|authorization)"?\s*[:=]\s*)'
@@ -56,6 +58,7 @@ class Redator:
         for segredo in conhecidos:
             texto = texto.replace(segredo, MASCARA)
         texto = _RE_JWT.sub(MASCARA, texto)
+        texto = _RE_CHAVE_API.sub(MASCARA, texto)
         texto = _RE_BEARER.sub(rf"\1{MASCARA}", texto)
         texto = _RE_CAMPO_SEGREDO.sub(rf"\1\2{MASCARA}\3", texto)
         return _RE_DOC.sub(rf"\1{'*' * 6}\2", texto)

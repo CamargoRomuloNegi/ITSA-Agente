@@ -228,6 +228,18 @@ class EventoConcluido:
     model: str | None = None
     usage: Uso | None = None
     tipo: str = "completed"
+    #: Motivo do fim informado por provedores externos (``stop``, ``length``...). O gateway ITSA
+    #: não informa; ``length`` significa resposta cortada pelo limite de tokens.
+    motivo: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class EventoRaciocinio:
+    """Trecho de *raciocínio* (``reasoning``) de provedores externos — separado da resposta."""
+
+    content: str
+    request_id: str | None = None
+    tipo: str = "reasoning"
 
 
 @dataclass(frozen=True, slots=True)
@@ -248,7 +260,14 @@ class EventoDesconhecido:
     tipo: str = "unknown"
 
 
-EventoStream = EventoIniciado | EventoDelta | EventoConcluido | EventoErro | EventoDesconhecido
+EventoStream = (
+    EventoIniciado
+    | EventoDelta
+    | EventoRaciocinio
+    | EventoConcluido
+    | EventoErro
+    | EventoDesconhecido
+)
 EVENTOS_TERMINAIS = (EventoConcluido, EventoErro)
 
 

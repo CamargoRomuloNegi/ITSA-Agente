@@ -21,6 +21,12 @@ Situação: ✅ implementado e testado · 🔶 parcial · ⏳ planejado (fase fu
 | RF-12 | Enviar cabeçalhos de telemetria opcionais (`X-Erp-Version`, `X-Chat-Module-Version`, `X-Installation-Id`) | S | ✅ | Validação local dos limites (50 caracteres; GUID) | `config.py`, `client._cabecalhos_base` | `test_cabecalhos_de_telemetria`, `test_config.py` |
 | RF-13 | Configurar por `.env` e variáveis `ITSA_*`, com validação e mensagens claras | M | ✅ | Valores inválidos → `ConfigurationError` | `config.py` | `test_config.py` |
 | RF-14 | Executar direto da pasta sem instalar nada no sistema | M | ✅ | Scripts criam `.venv` local | `iniciar.*`, `testar.*`, `diagnostico.*` | (manual; ver [09](09-operacao.md)) |
+| RF-15 | Conectar, na mesma tela, a provedores externos (NVIDIA e OpenRouter) por chave de API, de forma **opcional** e sem alterar o fluxo do gateway ITSA | M | ✅ | Chave em campo mascarado; conexão só com o provedor informado; falha de um provedor não derruba os demais | `providers/`, `ui/pagina_conexao.py` | `test_provedores.py`, `test_ui_provedores.py` |
+| RF-16 | Rotear cada chamada pelo identificador qualificado `provedor::modelo` (sem `::` = gateway ITSA), com a mesma interface de streaming | M | ✅ | Origem desconectada → erro de validação local | `providers/roteador.py` | `test_provedores.py` |
+| RF-17 | Decodificar SSE no padrão OpenAI-compatível, emitindo os mesmos eventos do gateway, com raciocínio separado e motivo de término | M | ✅ | Corte sem `finish_reason` → `StreamInterrupted`; raciocínio nunca entra no histórico | `providers/sse.py`, `conversation.py` | `test_provedores.py` |
+| RF-18 | Listar modelos de todas as origens em catálogo único (gratuitos primeiro no OpenRouter) | S | ✅ | Falha de listagem de um provedor vira aviso | `providers/openrouter.py`, `ui/pagina_modelos.py` | `test_provedores.py`, `test_ui_provedores.py` |
+| RF-19 | Controlar raciocínio (padrão/ligado/desligado) por chamada, quando suportado | S | ✅ | Desligado por padrão no NVIDIA Nemotron 3 | `providers/nvidia.py`, `ui/pagina_chat.py` | `test_provedores.py` |
+| RF-20 | Diagnóstico de provedor (P01–P09) com relatório redigido | S | ✅ | Chave nunca aparece no relatório | `diagnostics/provedores.py` | `test_diagnostico_provedores.py` |
 
 ## 2. Requisitos não funcionais
 
@@ -37,6 +43,7 @@ Situação: ✅ implementado e testado · 🔶 parcial · ⏳ planejado (fase fu
 | RNF-09 | Manutenibilidade | Núcleo sem dependência de UI; UI sem lógica de protocolo; sem ciclos de importação | Estrutura de pacotes ([02](02-arquitetura.md)) |
 | RNF-10 | Testabilidade | Todo I/O injetável (transporte HTTP, relógio, espera) | Fixtures de `tests/conftest.py` |
 | RNF-11 | Concorrência | Estado de token protegido por `Lock`; uma instância de cliente por sessão de usuário | `GerenciadorToken` |
+| RNF-12 | Segredos de provedores | Chaves `nvapi-`/`sk-or-` só em memória, redigidas de logs e relatórios; sem variável de ambiente para chaves (ADR-0007, ADR-0010) | `test_provedores.py`, `test_diagnostico_provedores.py` |
 
 ## 3. Regras de negócio e de contrato
 
@@ -75,6 +82,7 @@ Detalhados nos documentos indicados; **ainda não implementados**.
 |---|---|
 | O1 Cliente confiável | RF-01…RF-08, RF-12, RNF-01…RNF-03 |
 | O2 Validar gateway | RF-10, RF-11 |
+| O2b Comparar modelos/provedores | RF-15…RF-20 |
 | O3 Guardrails | RF-G1…RF-G5 |
 | O4 Camada de dados | RF-D1, RF-D2 |
 | O5 Agentes | RF-A1…A4 |

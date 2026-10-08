@@ -35,11 +35,13 @@ def relatorio_markdown(relatorio: Relatorio, redator: Redator | None = None) -> 
     d = relatorio_dict(relatorio, redator)
     c = d["contagem"]
     linhas = [
-        "# Relatório de diagnóstico — IAitsaGateway",
+        f"# {d['titulo']}",
         "",
         f"- **Início:** {d['iniciado_em']} (UTC)",
-        f"- **Gateway:** {d['base_url']}",
-        f"- **Cliente (mascarado):** {d['cpf_cnpj_mascarado']} · usuário ERP `{d['usuario_erp']}`",
+        f"- **{d['rotulo_base']}:** {d['base_url']}",
+        d["identificacao"]
+        or f"- **Cliente (mascarado):** {d['cpf_cnpj_mascarado']} "
+        f"· usuário ERP `{d['usuario_erp']}`",
         f"- **Versão do ITSA-Agente:** {d['versao_app']}",
         f"- **Duração total:** {d['duracao_total_s']} s",
         f"- **Resumo:** ✅ {c['OK']} · ⚠️ {c['ALERTA']} · ❌ {c['FALHA']} · "

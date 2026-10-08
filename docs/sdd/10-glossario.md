@@ -24,10 +24,15 @@
 | **JWT** | Token de acesso de curta duração emitido por `POST /api/auth/token` |
 | **LGPD** | Lei Geral de Proteção de Dados (Lei 13.709/2018) |
 | **Módulo** | Unidade licenciável: agente + tela |
+| **Modelo qualificado** | Identificador `provedor::modelo`; sem `::` indica o gateway ITSA |
 | **NDJSON** | *Newline-delimited JSON*: um objeto JSON completo por linha |
 | **`requestId`** | Identificador de uma requisição de chat, presente nos eventos; use-o ao reportar problemas |
+| **Provedor externo** | Serviço de modelos de terceiros acessado por chave de API (NVIDIA, OpenRouter) |
+| **Raciocínio** | Trecho de "pensamento" do modelo, exibido à parte e nunca guardado no histórico |
 | **Redator** | Componente que remove segredos e dados sensíveis de textos e logs |
+| **Roteador** | Componente que direciona cada chamada de chat à origem indicada pelo modelo qualificado |
 | **SDD** | *Software Design Document* (esta documentação) |
+| **SSE** | *Server-Sent Events*: formato de streaming usado pelos provedores externos |
 | **`started`** | Primeiro evento do streaming |
 | **Token ID** | Credencial individual do cliente, fornecida pelo licenciamento; segredo |
 | **TTFB / 1º trecho** | Tempo até o primeiro `delta` |

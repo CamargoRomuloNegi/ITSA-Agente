@@ -3,6 +3,23 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento
 [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.0] — 2026-10-08
+
+Integração nativa com **provedores externos**, sem alterar o fluxo do gateway ITSA (ADR-0010).
+
+### Adicionado
+- Pacote `itsa_agente/providers/`: cliente OpenAI-compatível com SSE, NVIDIA (`nemotron-3-ultra-550b-a55b`),
+  OpenRouter (catálogo dinâmico, gratuitos primeiro), fábrica e `Roteador` por modelo qualificado `provedor::modelo`.
+- Tela **Conexão** com campos (mascarados) para as chaves NVIDIA e OpenRouter; modo só-externo; avisos por provedor.
+- **Raciocínio** controlável (padrão/ligado/desligado), exibido à parte e nunca guardado no histórico.
+- Diagnóstico de provedor **P01–P09** (catálogo, chat mínimo, UTF-8, `system`, streaming longo, raciocínio, chave inválida, modelo inexistente, contexto longo opcional).
+- Erro `CreditoInsuficiente` (402); redação de chaves `nvapi-`/`sk-or-`.
+- Configuração `ITSA_NVIDIA_*`, `ITSA_OPENROUTER_*`, `ITSA_PROVIDER_MAX_TOKENS`.
+- 162 testes (350 no total); ADR-0010 e SDD 11.
+
+### Observação
+- Os endpoints reais não puderam ser exercitados do ambiente de desenvolvimento; confirmar com o diagnóstico P01–P09 (lacunas L-13…L-18).
+
 ## [0.1.2] — 2026-10-08
 
 Primeira versão ajustada com **medições do gateway real** (ver `docs/sdd/03` §6).

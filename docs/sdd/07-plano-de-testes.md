@@ -37,7 +37,10 @@ cenários que o servidor real raramente produz sob demanda.
 | `test_diagnostico.py` | 21 | Gateway saudável, catálogo de erros, alertas por divergência de contrato, gateway fora do ar, opções D18/D19, relatórios sem segredos |
 | `test_cli.py` | 6 | Execução, relatórios gravados, códigos de saída 0/1/2, ausência de parâmetro de Token ID |
 | `test_ui.py` | 14 | Conexão (sucesso, token errado, CNPJ inválido), desconectar, telas protegidas, chat (stream, erro, nova conversa, instrução de sistema), limpeza de widgets, mensagens de erro |
-| **Total** | **188** | |
+| `test_provedores.py` | 113 | Base/ids qualificados, erros OpenAI-compatíveis, SSE, cliente (retentativa, `stream_options`), NVIDIA, OpenRouter, roteador, redação de chaves |
+| `test_ui_provedores.py` | 28 | Conexão com chaves, modo só-externo, avisos, remoção, catálogo unificado, chat com provedor e raciocínio |
+| `test_diagnostico_provedores.py` | 21 | P01–P09, chave inválida, relatórios sem chave |
+| **Total** | **350** | |
 
 ## 3. Matriz requisito → teste
 
@@ -75,7 +78,7 @@ Ubuntu e Windows, Python 3.10 e 3.12; inclui `ruff format --check`).
 A execução local roda, nesta ordem: `ruff check .` → `mypy` → `pytest`. **Os três precisam passar** antes
 de qualquer *commit*.
 
-Critérios de aceite da Fase 1 (todos atendidos no momento da entrega): 188 testes verdes;
+Critérios de aceite da Fase 1 (todos atendidos no momento da entrega): 350 testes verdes;
 `ruff` e `mypy --strict` sem alertas; fluxo de UI completo em `AppTest`; relatórios sem segredos.
 
 ## 5. Roteiro de aceitação com o gateway real (manual)
@@ -108,6 +111,8 @@ Procurar o Token ID e o JWT em: saída do terminal, relatórios, arquivos da pas
 (`grep -r "<token>" .`), e histórico do shell. **Nenhuma ocorrência é aceitável.**
 
 ## 6. O que os testes atuais **não** cobrem
+
+- **Provedores reais:** os endpoints da NVIDIA e do OpenRouter foram simulados (`tests/provedor_falso.py`) a partir dos formatos documentados; o comportamento real só é confirmado executando o diagnóstico P01–P09 com chaves reais.
 
 | Lacuna | Motivo | Mitigação |
 |---|---|---|

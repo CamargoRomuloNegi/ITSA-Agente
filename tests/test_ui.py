@@ -37,8 +37,12 @@ def conectar(at: AppTest, token: str = TOKEN_ID_OK) -> AppTest:
 def test_tela_inicial_pede_credenciais(app: AppTest) -> None:
     assert not app.exception
     assert app.header[0].value.endswith("Conexão com o gateway")
-    assert len(app.text_input) == 3
+    # 3 campos do gateway + 2 chaves de provedores externos (opcionais), todos de senha, exceto
+    # CPF/CNPJ e usuário.
+    assert len(app.text_input) == 5
     assert app.text_input[1].proto.type == 1  # PASSWORD: o Token ID é mascarado na tela
+    assert app.text_input[3].proto.type == 1  # chave NVIDIA mascarada
+    assert app.text_input[4].proto.type == 1  # chave OpenRouter mascarada
 
 
 def test_conexao_com_sucesso(app: AppTest) -> None:
@@ -71,7 +75,7 @@ def test_desconectar_limpa_a_sessao(app: AppTest) -> None:
     at.button[0].click()  # "Desconectar"
     at = at.run()
     assert estado.CHAVE_CLIENTE not in at.session_state
-    assert len(at.text_input) == 3
+    assert len(at.text_input) == 5
 
 
 def _pagina_protegida(nome: str) -> None:

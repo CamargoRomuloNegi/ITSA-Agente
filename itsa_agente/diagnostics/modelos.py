@@ -62,6 +62,10 @@ class Relatorio:
     resultados: list[Resultado] = field(default_factory=list)
     observacoes: list[Observacao] = field(default_factory=list)
     duracao_total_s: float = 0.0
+    # Apresentação (o diagnóstico de provedores externos reaproveita o mesmo relatório).
+    titulo: str = "Relatório de diagnóstico — IAitsaGateway"
+    rotulo_base: str = "Gateway"
+    identificacao: str | None = None  # substitui a linha "Cliente (mascarado)", se informada
 
     def contagem(self) -> dict[str, int]:
         c = {s.value: 0 for s in Status}

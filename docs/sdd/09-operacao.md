@@ -31,7 +31,15 @@ Copie `.env.example` para `.env`. Valores inválidos impedem o início com mensa
 | `ITSA_INSTALLATION_ID` | *(vazio)* | Cabeçalho `X-Installation-Id` (GUID) |
 | `ITSA_CPF_CNPJ`, `ITSA_ERP_USER` | *(vazio)* | Pré-preenchem a tela de conexão e a CLI |
 | `ITSA_TOKEN_ID` | *(vazio)* | **Somente desenvolvimento.** Preenche o Token ID; evite — prefira digitar |
+| `ITSA_NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | URL base do NVIDIA |
+| `ITSA_NVIDIA_MODELS` | `nvidia/nemotron-3-ultra-550b-a55b` | Modelos NVIDIA oferecidos (lista separada por vírgula ou ponto e vírgula) |
+| `ITSA_OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | URL base do OpenRouter |
+| `ITSA_OPENROUTER_REFERER`, `ITSA_OPENROUTER_TITLE` | *(vazio)*, `ITSA-Agente` | Cabeçalhos de atribuição do OpenRouter |
+| `ITSA_OPENROUTER_DATA_COLLECTION` | *(vazio)* | `allow` ou `deny` (política de retenção de dados do OpenRouter) |
+| `ITSA_PROVIDER_MAX_TOKENS` | `8192` | Teto de tokens de resposta nos provedores externos |
 | `ITSA_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+
+**As chaves de API (NVIDIA, OpenRouter) não têm variável de ambiente nem entram em Secrets:** são digitadas na tela Conexão e ficam só na memória da sessão.
 
 Constantes não configuráveis: espera de retentativa `0,5 s × 2ⁿ`; teto de `Retry-After` 10 s;
 `User-Agent: ITSA-Agente/<versão>`.
@@ -132,6 +140,9 @@ Para depurar, use `ITSA_LOG_LEVEL=DEBUG` (mostra método, caminho, status e temp
 | "O servidor demorou demais" | Modelo lento ou sobrecarregado | Ajustar `ITSA_STREAM_READ_TIMEOUT`; medir com D07 |
 | Texto com acentos quebrados | Codificação | Rodar D08; conferir proxies intermediários |
 | Lista de modelos vazia | Nenhum modelo habilitado/instalado para o cliente | Verificar configuração do gateway |
+| Provedor externo: chave rejeitada (401/403) | Chave errada, revogada ou sem acesso ao modelo | Gerar nova chave no painel do provedor |
+| OpenRouter: crédito insuficiente (402) | Saldo zerado ou modelo pago | Usar modelo gratuito (`:free`) ou recarregar |
+| Provedor externo: muitas requisições (429) | Limite de taxa (o cliente não repete) | Aguardar; reduzir a frequência (L-13) |
 | "Dados inválidos: …" | Validação local do contrato | Ler a mensagem (campo e regra); ajustar a entrada |
 
 ## 8. Atualização e versionamento

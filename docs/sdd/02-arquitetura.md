@@ -11,12 +11,13 @@ flowchart LR
         N -.Fase 3.-> D[Camada de dados<br/>views somente leitura]
     end
     N -->|HTTPS · JWT · NDJSON| GW[IAitsaGateway]
+    N -.opcional · chave de API · SSE.-> EXT[NVIDIA · OpenRouter]
     GW --> M[(Modelos locais<br/>offline)]
     D -.-> DB[(Banco do cliente<br/>views)]
     LIC[(Licenciamento<br/>cadastro externo)] -.Token ID.-> N
 ```
 
-Linhas tracejadas são **fases futuras**. Na Fase 1, existem apenas: tela → núcleo → gateway.
+Linhas tracejadas são **fases futuras**. Na Fase 1, existem apenas: tela → núcleo → gateway. Na versão 0.2.0 o núcleo também pode falar com provedores externos (linha tracejada "opcional"), por meio do `Roteador` (ver [11](11-provedores-externos.md)).
 
 ## 2. Camadas e dependências
 
@@ -56,9 +57,19 @@ ITSA-Agente/
 │   │   ├── ndjson.py           # linha → evento; iterar_eventos
 │   │   ├── auth.py             # GerenciadorToken
 │   │   └── client.py           # ClienteGateway, RespostaSondagem
+│   ├── providers/              # v0.2.0: provedores externos
+│   │   ├── base.py             # ids, qualificar/separar, OpcoesGeracao, ModeloCatalogo
+│   │   ├── erros.py            # erros OpenAI-compatíveis → GatewayError
+│   │   ├── sse.py              # DecodificadorSSE
+│   │   ├── openai_compat.py    # ClienteOpenAICompat (chat, verificação, sondagem)
+│   │   ├── nvidia.py           # ProvedorNvidia
+│   │   ├── openrouter.py       # ProvedorOpenRouter
+│   │   ├── fabrica.py          # criar_provedor
+│   │   └── roteador.py         # Roteador, Catalogo
 │   ├── diagnostics/
 │   │   ├── modelos.py          # Status, Resultado, Observacao, Relatorio
 │   │   ├── suite.py            # Diagnostico (D01–D19)
+│   │   ├── provedores.py       # DiagnosticoProvedor (P01–P09)
 │   │   ├── relatorio.py        # Markdown/JSON redigidos
 │   │   └── __main__.py         # CLI
 │   └── ui/

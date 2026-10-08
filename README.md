@@ -39,6 +39,11 @@ Com as dependências já instaladas, também funciona: `streamlit run app.py`.
 4. Em **Diagnóstico**, execute a bateria e baixe o relatório (Markdown/JSON). **Esse relatório é o
    insumo para fechar as lacunas do contrato** — ver [03-contrato-api-gateway](docs/sdd/03-contrato-api-gateway.md).
 
+5. **(Opcional, v0.2.0)** Na mesma tela **Conexão**, informe a chave da **NVIDIA** (`nvapi-…`) e/ou do
+   **OpenRouter** (`sk-or-…`). Os modelos aparecem em **Modelos** e no **Chat** com o prefixo do
+   provedor (`nvidia::…`, `openrouter::…`). Deixando o Token ID em branco, conecta só os provedores.
+   As chaves ficam só na memória da sessão. Detalhes em [11-provedores-externos](docs/sdd/11-provedores-externos.md).
+
 Configuração opcional: copie `.env.example` para `.env` (ignorado pelo Git). Todas as variáveis
 `ITSA_*` estão descritas em [09-operacao](docs/sdd/09-operacao.md).
 
@@ -51,7 +56,8 @@ itsa_agente/
   conversation.py         Histórico confirmado + janela de contexto (30 msgs / orçamento de chars)
   security.py             Mascaramento de segredos em logs e relatórios
   gateway/                Cliente da API: contratos, NDJSON, token, HTTP, erros tipados
-  diagnostics/            Bateria D01–D19, relatórios e CLI
+  providers/              Provedores externos (NVIDIA, OpenRouter): SSE, roteador, chaves
+  diagnostics/            Bateria D01–D19 (gateway), P01–P09 (provedores), relatórios e CLI
   ui/                     Telas: conexão, modelos, chat de teste, diagnóstico
 tests/                    Testes (gateway simulado em tests/gateway_falso.py)
 .github/workflows/ci.yml  Integração contínua (lint, formatação, tipos e testes)

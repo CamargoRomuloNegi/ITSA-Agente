@@ -185,6 +185,14 @@ O ganho de qualidade vem de **entregar ao modelo uma tarefa pequena, bem definid
   exige reavaliação.
 - **Feedback do usuário** (👍/👎 com categoria, sem conteúdo) para priorizar correções.
 
+### 8.1 Modelo fixo por agente e comparação entre modelos (v0.2.0)
+
+Em produção o modelo é **parâmetro fixo do agente** (sem escolha do usuário), o que dimensiona
+tráfego, peso das respostas e tempo. Com os provedores externos ([11](11-provedores-externos.md)), o
+mesmo conjunto de perguntas de ouro pode ser executado contra `iaitsa-geral`, `nvidia::…` e
+`openrouter::…` para decidir **qual modelo atende cada agente** por qualidade, latência e sensibilidade
+dos dados. O seletor de modelo do chat é ferramenta de teste, não de produção.
+
 ## 9. Ordem sugerida e critérios de entrada
 
 1. Fase 2 (guardrails) e Fase 3 (dados) **antes** do primeiro agente.

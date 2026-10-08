@@ -26,6 +26,7 @@ from itsa_agente.gateway.models import (
     EventoConcluido,
     EventoDelta,
     EventoErro,
+    EventoRaciocinio,
     EventoStream,
     Mensagem,
     Uso,
@@ -67,6 +68,10 @@ class Conversa:
     historico: list[Mensagem] = field(default_factory=list)
     ultimo_uso: Uso | None = None
     ultimo_request_id: str | None = None
+    #: Raciocínio ("thinking") da última resposta, quando o provedor o envia à parte.
+    ultimo_raciocinio: str | None = None
+    #: Motivo de término da última resposta (provedores externos). ``length`` = cortada por limite.
+    ultimo_motivo: str | None = None
 
     def __post_init__(self) -> None:
         if not 1 <= self.max_mensagens <= MAX_MENSAGENS:
@@ -120,6 +125,8 @@ class Conversa:
         self.historico.clear()
         self.ultimo_uso = None
         self.ultimo_request_id = None
+        self.ultimo_raciocinio = None
+        self.ultimo_motivo = None
 
     # ---------------------------------------------------------------- execução
     def perguntar(self, cliente: TransmissorChat, *, modelo: str, pergunta: str) -> Iterator[str]:
@@ -134,7 +141,10 @@ class Conversa:
         """
         janela = self.montar_janela(pergunta)
         partes: list[str] = []
+        raciocinio: list[str] = []
         concluido = False
+        self.ultimo_raciocinio = None
+        self.ultimo_motivo = None
         for evento in cliente.transmitir_chat(
             modelo=modelo, mensagens=janela.mensagens, conversa_id=self.id
         ):
@@ -142,6 +152,8 @@ class Conversa:
                 if evento.content:
                     partes.append(evento.content)
                     yield evento.content
+            elif isinstance(evento, EventoRaciocinio):
+                raciocinio.append(evento.content)
             elif isinstance(evento, EventoErro):
                 raise StreamError(
                     evento.mensagem or "O gateway reportou erro durante a geração.",
@@ -152,7 +164,9 @@ class Conversa:
                 concluido = True
                 self.ultimo_uso = evento.usage
                 self.ultimo_request_id = evento.request_id
+                self.ultimo_motivo = evento.motivo
 
+        self.ultimo_raciocinio = "".join(raciocinio) or None
         resposta = "".join(partes)
         if concluido and resposta.strip():
             self.confirmar(pergunta, resposta)

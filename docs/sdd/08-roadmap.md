@@ -22,11 +22,16 @@ conclui depois dos agentes.
 
 ### Fase 1 — Fundação ✅ *(esta entrega)*
 **Entregáveis:** cliente da API; conversa/janela; segurança de segredos; diagnóstico D01–D19; telas;
-188 testes; SDD e ADRs; scripts sem instalação.
+188 testes (350 na v0.2.0); SDD e ADRs; scripts sem instalação.
 **Saída:** critérios de [07 §4](07-plano-de-testes.md) atendidos.
 **Validação com o gateway real:** diagnóstico executado em 08/10/2026 (aprovado, sem falhas); medições
 em [03 §6](03-contrato-api-gateway.md). Restam as pendências de medição de §6.4 (teto de contexto,
 vazão de geração, efeito de `temperature`, corpo bruto dos erros do framework).
+
+### Fase 1.5 — Provedores externos ✅ *(v0.2.0)*
+**Entregáveis:** integração nativa com NVIDIA (`nemotron-3-ultra-550b-a55b`) e OpenRouter; roteador por
+modelo qualificado; raciocínio controlável; diagnóstico P01–P09; 350 testes; ADR-0010 e SDD 11.
+**Pendente:** validação com chaves reais (L-13…L-18).
 
 ### Fase 2 — Guardrails
 **Objetivo:** pacote `guardrails/` reutilizável (entrada, escopo, montagem de prompt com

@@ -62,6 +62,20 @@ flowchart LR
    (B.7).
 4. **Sem limite de taxa local**: depende de o gateway aplicar `429`.
 
+### A.4 Provedores externos, chaves de API e fluxo de dados (v0.2.0)
+
+- **Chaves** (`nvapi-…`, `sk-or-…`): digitadas em campo mascarado, mantidas só na memória da sessão,
+  registradas no redator global e sem variável de ambiente por desenho (ADR-0007, ADR-0010).
+- **Fluxo de dados:** ao escolher um modelo `nvidia::…` ou `openrouter::…`, o texto da conversa **sai da
+  infraestrutura da ITSA** e vai a terceiros. O gateway ITSA (modelos locais, offline) continua sendo o
+  caminho que mantém o dado dentro de casa.
+- **Decisão de produto (registrada):** por ora **não há restrição** de dados sensíveis para provedores
+  externos. A proteção será tratada na arquitetura de chamadas (Fase 2), contra **uso malicioso**, e não
+  contra uso indevido pelo usuário. Quando os agentes de ERP usarem dados de clientes, a política de
+  qual modelo pode receber qual dado deve ser definida **por agente** (ver [06 §8](06-agentes-e-modulos.md)).
+- **OpenRouter:** pode-se configurar `ITSA_OPENROUTER_DATA_COLLECTION=deny` para pedir que a
+  requisição só use provedores que não retêm dados. Termos de retenção do NVIDIA gratuito: L-13.
+
 ---
 
 ## B. Projeto dos guardrails (Fase 2 — *proposta*)

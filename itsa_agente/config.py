@@ -20,6 +20,11 @@ from itsa_agente.gateway.errors import ConfigurationError
 
 RAIZ_PROJETO = Path(__file__).resolve().parent.parent
 URL_PADRAO = "https://suporteitsa2.ddns.net"
+URL_NVIDIA_PADRAO = "https://integrate.api.nvidia.com/v1"
+URL_OPENROUTER_PADRAO = "https://openrouter.ai/api/v1"
+#: Modelos NVIDIA oferecidos por padrão (o catálogo da NVIDIA tem centenas; o usuário pode
+#: informar outro ID na tela ou em ``ITSA_NVIDIA_MODELS``).
+MODELOS_NVIDIA_PADRAO = ("nvidia/nemotron-3-ultra-550b-a55b",)
 
 #: Limite documentado para os cabeçalhos de versão (swagger do gateway).
 LIMITE_CABECALHO_VERSAO = 50
@@ -73,6 +78,12 @@ def _inteiro(ambiente: Mapping[str, str], chave: str, padrao: int, minimo: int) 
     return int(_numero(ambiente, chave, float(padrao), float(minimo)))
 
 
+def _lista(ambiente: Mapping[str, str], chave: str, padrao: tuple[str, ...]) -> tuple[str, ...]:
+    """Lista separada por vírgula (ou ponto e vírgula); vazio mantém o padrão."""
+    itens = tuple(i.strip() for i in re.split(r"[,;]", _texto(ambiente, chave)) if i.strip())
+    return itens or padrao
+
+
 def _booleano(ambiente: Mapping[str, str], chave: str, padrao: bool) -> bool:
     bruto = _texto(ambiente, chave).lower()
     if not bruto:
@@ -113,6 +124,17 @@ class Settings:
 
     log_level: str = "INFO"
 
+    # Provedores externos (opcionais). As chaves de API NUNCA ficam aqui: são digitadas na tela.
+    nvidia_base_url: str = URL_NVIDIA_PADRAO
+    nvidia_models: tuple[str, ...] = MODELOS_NVIDIA_PADRAO
+    openrouter_base_url: str = URL_OPENROUTER_PADRAO
+    openrouter_referer: str | None = None
+    openrouter_title: str = "ITSA-Agente"
+    #: ``deny`` pede ao OpenRouter só provedores que não coletam dados; ``None`` não envia nada.
+    openrouter_data_collection: str | None = None
+    #: Teto de tokens de saída enviado aos provedores externos (inclui o raciocínio).
+    provider_max_tokens: int = 8192
+
     def __post_init__(self) -> None:
         url = self.base_url.strip().rstrip("/")
         if not re.match(r"^https?://[^\s/]+", url):
@@ -132,6 +154,24 @@ class Settings:
                 uuid.UUID(self.installation_id)
             except ValueError as exc:
                 raise ConfigurationError("ITSA_INSTALLATION_ID deve ser um GUID válido.") from exc
+
+        for nome, valor in (
+            ("ITSA_NVIDIA_BASE_URL", self.nvidia_base_url),
+            ("ITSA_OPENROUTER_BASE_URL", self.openrouter_base_url),
+        ):
+            if not re.match(r"^https?://[^\s/]+", valor.strip()):
+                raise ConfigurationError(f"{nome} inválida: {valor!r}.")
+        object.__setattr__(self, "nvidia_base_url", self.nvidia_base_url.strip().rstrip("/"))
+        object.__setattr__(
+            self, "openrouter_base_url", self.openrouter_base_url.strip().rstrip("/")
+        )
+        if self.openrouter_data_collection not in (None, "allow", "deny"):
+            raise ConfigurationError(
+                "ITSA_OPENROUTER_DATA_COLLECTION deve ser 'allow' ou 'deny' "
+                f"(recebido: {self.openrouter_data_collection!r})."
+            )
+        if self.provider_max_tokens < 16:
+            raise ConfigurationError("ITSA_PROVIDER_MAX_TOKENS deve ser >= 16.")
 
         nivel = self.log_level.upper()
         if nivel not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
@@ -183,4 +223,15 @@ class Settings:
             usuario_erp_padrao=_texto(ambiente, "ITSA_ERP_USER"),
             token_id_dev=_texto(ambiente, "ITSA_TOKEN_ID"),
             log_level=_texto(ambiente, "ITSA_LOG_LEVEL", "INFO") or "INFO",
+            nvidia_base_url=_texto(ambiente, "ITSA_NVIDIA_BASE_URL", URL_NVIDIA_PADRAO)
+            or URL_NVIDIA_PADRAO,
+            nvidia_models=_lista(ambiente, "ITSA_NVIDIA_MODELS", MODELOS_NVIDIA_PADRAO),
+            openrouter_base_url=_texto(ambiente, "ITSA_OPENROUTER_BASE_URL", URL_OPENROUTER_PADRAO)
+            or URL_OPENROUTER_PADRAO,
+            openrouter_referer=opcional("ITSA_OPENROUTER_REFERER"),
+            openrouter_title=_texto(ambiente, "ITSA_OPENROUTER_TITLE", "ITSA-Agente")
+            or "ITSA-Agente",
+            openrouter_data_collection=(opcional("ITSA_OPENROUTER_DATA_COLLECTION") or "").lower()
+            or None,
+            provider_max_tokens=_inteiro(ambiente, "ITSA_PROVIDER_MAX_TOKENS", 8192, 16),
         )
